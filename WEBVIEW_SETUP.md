@@ -477,3 +477,17 @@ dependencies {
 - jitpack 빌드는 `jitpack.yml` 의 openjdk17 로 수행됨(로컬 `org.gradle.java.home` 과 무관).
 - 로컬 CLI 빌드 시 JDK 고정이 필요하면 `JAVA_HOME` 환경변수 또는 `~/.gradle/gradle.properties`(VCS 미포함) 사용.
 - `version`/`groupId` 는 jitpack 이 git 태그·`com.github.*` 로 덮어쓰므로 build.gradle 값은 참고용.
+
+### 13.5 commomLib 과 배포 방식 통일 (완료)
+공통 라이브러리 `commomLib`(별도 프로젝트)도 동일 스택으로 맞춰 두 라이브러리의 jitpack 배포 방식을 통일했다.
+
+| 항목 | commomLib | webviewlib |
+|---|---|---|
+| AGP / Gradle / Kotlin / Java | 8.6.0 / 8.7 / 1.9.24 / 17 | 동일 |
+| compileSdk / namespace | 35 / 적용 | 동일 |
+| jitpack.yml | openjdk17 + `install` | 동일 |
+| publishing | `singleVariant('release')` + sourcesJar | 동일 |
+| groupId / artifactId | `net.common.commonlib` / `commonlib` | `net.common.webviewlib` / `webviewlib` |
+
+- commomLib 최신화는 **코드 변경 없이 빌드 설정만**(synthetics/@Parcelize 미사용 확인). `kotlin-android-extensions` 제거, 의존성 SDK35 호환 상향.
+- **버전 정책**: commomLib 은 `1.0.16` → **`2.0.0`**(compileSdk 요구 상향은 breaking change). 기존 앱은 `1.0.16` 태그를 계속 사용하므로 영향 없고, **신규 앱만 `2.0.0`** 사용.
