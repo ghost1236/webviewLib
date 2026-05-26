@@ -1,1 +1,3 @@
 /build
+# exportJar 산출물 / 과거 타 프로젝트 jar(cesco) — 배포는 jitpack(AAR)이므로 커밋 제외
+/release
