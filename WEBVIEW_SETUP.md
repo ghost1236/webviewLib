@@ -429,3 +429,51 @@ Reachability.check(SERVER_URL) { ok ->
 webView.registerBridge("NativeBridge", AppBridge(this))
 webView.callJsFunction("onDataUpdated", jsonString)   // 네이티브→JS
 ```
+
+---
+
+## 13. jitpack 배포 (webviewlib)
+
+### 13.1 준비된 설정 (이 프로젝트에 적용 완료)
+| 항목 | 내용 |
+|---|---|
+| `jitpack.yml` | `jdk: openjdk17` (AGP 8.6 요구) + `install: ./gradlew :webviewlib:publishToMavenLocal` |
+| `webviewlib/build.gradle` | `maven-publish` + `android.publishing.singleVariant('release') { withSourcesJar() }` + `from components.release` |
+| publication 검증 | 로컬 `publishToMavenLocal` 로 AAR·sources·POM 생성 확인 (POM 에 webkit=compile 전파) |
+| `gradle.properties` | `org.gradle.java.home`(절대경로) **제거** — 안 그러면 jitpack 빌드 실패 |
+| `.gitignore` | `local.properties`, `webviewlib/release/` 제외 |
+
+### 13.2 배포 절차 (사용자가 수행 — git/GitHub 필요)
+이 프로젝트는 아직 git 저장소가 아니므로:
+```bash
+git init
+git add -A
+git commit -m "webviewlib: WebView 공통 라이브러리"
+git branch -M main
+git remote add origin https://github.com/<사용자>/<레포>.git
+git push -u origin main
+
+# 릴리스 태그(이게 jitpack 빌드 트리거)
+git tag 1.0.0
+git push origin 1.0.0
+```
+그다음 **https://jitpack.io** → `<사용자>/<레포>` 입력 → **Look up** → 태그 옆 **Get it**(첫 빌드는 수 분 소요).
+
+### 13.3 다른 프로젝트에서 사용
+```gradle
+// settings.gradle (dependencyResolutionManagement) 또는 build.gradle
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+// app/build.gradle
+dependencies {
+    implementation 'com.github.<사용자>:<레포>:1.0.0'
+}
+```
+> ⚠️ 멀티모듈 좌표 주의: 이 레포는 `app` + `webviewlib` 멀티모듈이라, jitpack 이 모듈별로 게시하면 좌표가
+> `com.github.<사용자>.<레포>:webviewlib:1.0.0` 형태가 될 수 있다. **빌드 후 jitpack 페이지에 표시되는 정확한 좌표**를 사용할 것.
+
+### 13.4 주의
+- jitpack 빌드는 `jitpack.yml` 의 openjdk17 로 수행됨(로컬 `org.gradle.java.home` 과 무관).
+- 로컬 CLI 빌드 시 JDK 고정이 필요하면 `JAVA_HOME` 환경변수 또는 `~/.gradle/gradle.properties`(VCS 미포함) 사용.
+- `version`/`groupId` 는 jitpack 이 git 태그·`com.github.*` 로 덮어쓰므로 build.gradle 값은 참고용.

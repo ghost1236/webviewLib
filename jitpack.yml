@@ -1,0 +1,9 @@
+# JitPack 빌드 환경 설정
+# AGP 8.6 은 JDK 17 이상을 요구하므로 OpenJDK 17 로 빌드하도록 지정한다.
+# (지정하지 않으면 JitPack 기본 JDK 로 빌드되어 AGP 8 빌드가 실패할 수 있음)
+jdk:
+  - openjdk17
+
+# webviewlib 라이브러리 모듈만 게시(app 은 application 이라 게시 대상 아님)
+install:
+  - ./gradlew :webviewlib:publishToMavenLocal
