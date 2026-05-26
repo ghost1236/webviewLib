@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로컬 assets 테스트</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; margin: 0; padding: 24px; background: #f5f6f8; color: #222; }
+        .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+        h1 { font-size: 20px; margin: 0 0 8px; }
+        p { color: #666; line-height: 1.5; }
+        button { margin-top: 12px; padding: 10px 16px; border: 0; border-radius: 8px; background: #03c75a; color: #fff; font-size: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>로컬 assets 로딩 성공</h1>
+        <p>이 화면은 <code>src/main/assets/index.html</code> 파일이
+           <code>https://appassets.androidplatform.net/assets/index.html</code> 경로로 로드된 것입니다.</p>
+        <p>WebViewAssetLoader 가 정상 동작 중입니다.</p>
+        <button onclick="document.querySelector('h1').textContent='JS 동작 확인 완료'">JS 테스트</button>
+    </div>
+</body>
+</html>

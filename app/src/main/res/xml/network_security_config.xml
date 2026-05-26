@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  네트워크 보안 설정.
+  기본 정책: cleartext(HTTP) 전면 차단 — 원격은 HTTPS 만 허용.
+  로컬 assets 는 appassets.androidplatform.net 가상 도메인을 통해 WebViewAssetLoader 가 가로채므로
+  여기서 별도 허용이 필요 없다.
+
+  개발 중 평문 HTTP 서버를 붙여야 한다면, 아래 주석을 참고해 특정 도메인만 예외 허용할 것.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+
+    <!--
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">192.168.0.10</domain>
+        <domain includeSubdomains="true">dev.example.com</domain>
+    </domain-config>
+    -->
+</network-security-config>

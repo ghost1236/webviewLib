@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- WebView 의 핵심 전제: 네트워크 접근. 라이브러리에 선언해 두면 이 모듈을 쓰는 앱에 자동 병합된다. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+</manifest>

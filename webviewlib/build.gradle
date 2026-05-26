@@ -1,0 +1,84 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'maven-publish'
+}
+
+android {
+    // AGP 8 : package 대신 namespace
+    namespace 'net.common.webviewlib'
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 21
+        // 라이브러리 모듈의 targetSdk 는 AGP 8 에서 deprecated 이므로 제거
+        versionCode 1
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    // AGP 8 publishing : 어떤 variant 를 컴포넌트로 노출할지 명시해야 from components.release 가 동작
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'net.common.webviewlib'
+                artifactId = 'webviewlib'
+                version = '1.0.0'
+            }
+        }
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    // WebViewAssetLoader: 로컬 assets 를 https://appassets.androidplatform.net 경로로 안전하게 로드.
+    // api 로 노출하여 이 라이브러리를 쓰는 app 모듈이 별도 의존 추가 없이 사용 가능하게 함.
+    api 'androidx.webkit:webkit:1.11.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    // commonlib.jar 의존 제거: WebView 라이브러리는 commonlib 을 사용하지 않음.
+    // (commonlib 자체는 사용자 jitpack 공통 모듈로 유지되며, 여기서 끊는 것은 webviewlib 의 미사용 의존뿐.)
+}
+
+task deleteObjectJar(type: Delete) {
+    delete 'release/webviewlib.jar'
+}
+
+// release 폴더에 library 이름으로 jar 생성.
+task exportJar(type: Copy) {
+    from('build/intermediates/aar_main_jar/release/')
+    into('release/')
+    include('classes.jar')
+    rename('classes.jar', 'webviewlib.jar')
+}
+
+exportJar.dependsOn(deleteObjectJar, build)

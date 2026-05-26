@@ -1,0 +1,21 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# AI Orchestrator 런타임 (프로젝트별 상태)
+.ai-orchestrator/
+# design token은 git 관리
+!design/tokens/raw/
+!design/tokens/compiled/
