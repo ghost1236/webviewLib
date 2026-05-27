@@ -2,8 +2,18 @@
 
 WebView 화면을 빠르게 구성하기 위한 안드로이드 라이브러리. 설정·URL 라우팅·에러/SSL·파일 업/다운로드·권한·진행률·전체화면·팝업·네트워크 감지·JS Bridge 를 제공한다.
 
-> 의존성은 이미 `build.gradle` 에 등록돼 있다고 가정한다.
-> (jitpack 좌표 예: `com.github.ghost1236.webviewLib:webviewlib:1.0.1` — 정확한 좌표는 jitpack 페이지 참조)
+## 설치 (jitpack)
+```gradle
+// settings.gradle (dependencyResolutionManagement) 또는 build.gradle
+repositories { maven { url 'https://jitpack.io' } }
+
+// app/build.gradle
+dependencies {
+    implementation 'com.github.ghost1236.webviewLib:webviewlib:2.0.0'
+}
+```
+> ⚠️ 이 라이브러리는 **Kotlin 2.1.20 / AGP 8.6 / compileSdk 35** 로 빌드됨 → 소비 앱도 **Kotlin 2.1+, compileSdk 35** 가 필요합니다.
+> 멀티모듈이라 정확한 좌표는 빌드 후 jitpack 페이지(`jitpack.io/#ghost1236/webviewLib`)에서 확인하세요.
 
 ---
 
