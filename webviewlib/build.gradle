@@ -47,9 +47,8 @@ afterEvaluate {
                 from components.release
                 groupId = 'net.common.webviewlib'
                 artifactId = 'webviewlib'
-                // 1.0.x(Kotlin 1.9.24) 이미 배포됨 → Kotlin 2.1.20 + BaseWebViewActivity 반영,
-                // Kotlin 메이저 영향(소비 앱도 2.1+ 필요)이라 2.0.0 으로 올림
-                version = '2.0.0'
+                // 2.0.0 이미 배포됨 → material 미사용 의존성 + 죽은 themes 제거 반영분이 2.0.1
+                version = '2.0.1'
             }
         }
     }
@@ -59,7 +58,7 @@ dependencies {
 
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'com.google.android.material:material:1.12.0'
+    // material 은 미사용(죽은 themes.xml 만 참조하던 것)이라 제거
     // WebViewAssetLoader: 로컬 assets 를 https://appassets.androidplatform.net 경로로 안전하게 로드.
     // api 로 노출하여 이 라이브러리를 쓰는 app 모듈이 별도 의존 추가 없이 사용 가능하게 함.
     api 'androidx.webkit:webkit:1.11.0'
