@@ -47,7 +47,9 @@ afterEvaluate {
                 from components.release
                 groupId = 'net.common.webviewlib'
                 artifactId = 'webviewlib'
-                version = '1.0.0'
+                // 1.0.x(Kotlin 1.9.24) 이미 배포됨 → Kotlin 2.1.20 + BaseWebViewActivity 반영,
+                // Kotlin 메이저 영향(소비 앱도 2.1+ 필요)이라 2.0.0 으로 올림
+                version = '2.0.0'
             }
         }
     }
