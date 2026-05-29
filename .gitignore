@@ -19,3 +19,4 @@ local.properties
 # design token은 git 관리
 !design/tokens/raw/
 !design/tokens/compiled/
+samples/

@@ -411,6 +411,9 @@ NetworkCallback.onLost when state == SERVER_B:
 | `Reachability` | `webviewlib/.../Reachability.kt` | 서버 도달성 프리체크(백그라운드→메인 콜백) |
 | `registerBridge` / `callJsFunction` | `webviewlib/.../WebViewBridge.kt` | JS Bridge 등록 + 네이티브→JS 호출(스키마는 앱) |
 
+> 📄 위 도구로 A/B 상태머신을 **상속형(`BaseWebViewActivity`)** 으로 조립하는 구체적 사용법과 복붙 샘플:
+> [`OFFLINE_FIRST_GUIDE.md`](OFFLINE_FIRST_GUIDE.md) · `samples/web/`(기능별 패키지: web · web.dashboard · web.splash)
+
 ```kotlin
 // 1) 네트워크 감지 — A↔B 전환·재전송 트리거
 val monitor = NetworkMonitor(this).apply {

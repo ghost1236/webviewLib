@@ -85,6 +85,11 @@ class MyWebActivity : BaseWebViewActivity() {
 
 > ⚠️ `BaseWebViewActivity` 는 `AppCompatActivity` 를 상속한다. 다른 베이스(commonlib `BaseActivity` 등)를 동시에 상속해야 하는 화면은 단일 상속 제약상 **방식 B** 로 구성한다.
 
+## A-4. 오프라인 퍼스트 + 서버 폴백 (상태머신)
+로컬로 즉시 시작하고 온라인이면 서버로 전환, 끊기면 로컬로 복귀하는 패턴은
+상속형 + `NetworkMonitor`/`Reachability`/JS Bridge 로 구성한다.
+→ [`OFFLINE_FIRST_GUIDE.md`](OFFLINE_FIRST_GUIDE.md) (샘플: `samples/web/`)
+
 ---
 
 # 방식 B — 조합형 (세밀 제어)
