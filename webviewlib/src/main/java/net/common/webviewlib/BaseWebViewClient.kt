@@ -157,13 +157,17 @@ class BaseWebViewClient(
         onErrorCallback?.invoke(errorCode, description, true)
     }
 
-    // HTTP 상태 에러(404, 500 등) — 리소스 단위
+    // HTTP 상태 에러(404, 500 등). onReceivedHttpError 는 리소스 단위로도 불리므로(이미지/CSS 등),
+    // 메인 프레임일 때만 에러 콜백으로 전달한다 — 서브리소스 404 로 페이지 전체가 폴백되지 않도록.
     override fun onReceivedHttpError(
         view: WebView?,
         request: WebResourceRequest?,
         errorResponse: WebResourceResponse?
     ) {
         super.onReceivedHttpError(view, request, errorResponse)
+        if (request?.isForMainFrame == true) {
+            onErrorCallback?.invoke(errorResponse?.statusCode ?: -1, errorResponse?.reasonPhrase, true)
+        }
     }
 
     // SSL 에러 — 기본은 거부(cancel). 콜백이 있으면 위임.
