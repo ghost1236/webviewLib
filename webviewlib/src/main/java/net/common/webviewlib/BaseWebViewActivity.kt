@@ -77,6 +77,12 @@ abstract class BaseWebViewActivity : AppCompatActivity() {
     protected open fun onPageFinished(url: String?) {}
     protected open fun onWebError(errorCode: Int, description: String?, isMainFrame: Boolean) {}
 
+    /**
+     * 내비게이션 가로채기 hook. 웹 스킴 메인 이동 직전 호출 — 다른 URL 을 반환하면 그 URL 로 대체 로드한다.
+     * 기본 null = 가로채지 않음(원래 URL 로드). 오프라인-퍼스트 등에서 소스 전환(로컬↔서버)에 override.
+     */
+    protected open fun resolveNavigation(url: String): String? = null
+
     // --- 내부 상태 ----------------------------------------------------------
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
@@ -141,6 +147,8 @@ abstract class BaseWebViewActivity : AppCompatActivity() {
                 if (isMainFrame) progressBar?.visibility = View.GONE
                 onWebError(code, desc, isMainFrame)
             }
+            // 내비게이션 가로채기 위임(서브클래스 resolveNavigation). 기본 구현은 null → 동작 변화 없음.
+            navigationResolver = { url -> this@BaseWebViewActivity.resolveNavigation(url) }
         }
 
         chromeClient = BaseWebChromeClient(this, fullscreenContainer).apply {

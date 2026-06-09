@@ -43,25 +43,42 @@ class BaseWebViewClient(
      */
     var onSslErrorCallback: ((handler: SslErrorHandler, error: SslError) -> Boolean)? = null
 
+    /**
+     * 내비게이션 가로채기 훅. 웹 스킴(http/https — 로컬 appassets 포함) 메인 이동 직전에 호출된다.
+     * 다른 URL(non-null & 원본과 다름)을 반환하면 그 URL 로 대체 로드하고 원 로드는 취소한다.
+     * null 또는 같은 URL 이면 WebView 가 원래대로 로드.
+     * (오프라인-퍼스트의 로컬↔서버 소스 전환용. 기본 null = 동작 변화 없음 — 하위호환)
+     */
+    var navigationResolver: ((url: String) -> String?)? = null
+
     // --- URL 라우팅 ---------------------------------------------------------
 
     // API 24+ : WebResourceRequest 기반
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean =
-        handleUrl(request?.url)
+        handleUrl(view, request?.url)
 
     // API 21~23 : 문자열 기반(deprecated 지만 minSdk 21 대응 위해 함께 구현)
     @Deprecated("Deprecated in Java")
     override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean =
-        handleUrl(url?.let { runCatching { Uri.parse(it) }.getOrNull() })
+        handleUrl(view, url?.let { runCatching { Uri.parse(it) }.getOrNull() })
 
     /**
      * @return true = 외부에서 처리(WebView 로드 중단), false = WebView 가 계속 로드
      */
-    private fun handleUrl(uri: Uri?): Boolean {
+    private fun handleUrl(view: WebView?, uri: Uri?): Boolean {
         val scheme = uri?.scheme?.lowercase() ?: return false
         return when (scheme) {
-            // 웹 스킴은 WebView 가 직접 로드
-            "http", "https" -> false
+            // 웹 스킴: 내비게이션 가로채기 훅으로 소스 전환(로컬↔서버) 기회를 준 뒤, 아니면 WebView 가 로드
+            "http", "https" -> {
+                val target = uri.toString()
+                val replacement = navigationResolver?.invoke(target)
+                if (replacement != null && replacement != target) {
+                    view?.loadUrl(replacement)   // 대체 URL 로 재로드(원 로드 취소)
+                    true                          // 우리가 처리함
+                } else {
+                    false                         // WebView 가 그대로 로드
+                }
+            }
             // 그 외 스킴은 외부 앱으로 위임(전화/메일/지도/스토어/커스텀 스킴 등)
             else -> {
                 launchExternal(uri)

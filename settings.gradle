@@ -9,6 +9,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        mavenLocal()   // samples 의 로컬 검증용 databaselib(publishToMavenLocal) 해석용
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
@@ -17,3 +18,4 @@ dependencyResolutionManagement {
 rootProject.name = "smWebview"
 include ':app'
 include ':webviewlib'
+include ':samples'
