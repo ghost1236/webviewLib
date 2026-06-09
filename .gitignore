@@ -20,3 +20,5 @@ local.properties
 !design/tokens/raw/
 !design/tokens/compiled/
 samples/
+FOLLOWUP_TASKS.md
+WEBVIEW_PAGE_INJECTION_GUIDE.md
