@@ -45,9 +45,11 @@ class BaseWebViewClient(
 
     /**
      * 내비게이션 가로채기 훅. 웹 스킴(http/https — 로컬 appassets 포함) 메인 이동 직전에 호출된다.
-     * 다른 URL(non-null & 원본과 다름)을 반환하면 그 URL 로 대체 로드하고 원 로드는 취소한다.
-     * null 또는 같은 URL 이면 WebView 가 원래대로 로드.
-     * (오프라인-퍼스트의 로컬↔서버 소스 전환용. 기본 null = 동작 변화 없음 — 하위호환)
+     * 반환값:
+     *  - 다른 URL(non-null & 원본과 다름): 그 URL 로 대체 로드(원 로드 취소).
+     *  - null 또는 같은 URL: WebView 가 원래대로 로드.
+     *  - [CANCEL_NAVIGATION]: 이동 취소 — 대체 로드/외부 위임 없이 현재 화면을 그대로 유지(stay).
+     * (오프라인 소스 전환/이동 차단용. 기본 null = 동작 변화 없음 — 하위호환)
      */
     var navigationResolver: ((url: String) -> String?)? = null
 
@@ -68,15 +70,14 @@ class BaseWebViewClient(
     private fun handleUrl(view: WebView?, uri: Uri?): Boolean {
         val scheme = uri?.scheme?.lowercase() ?: return false
         return when (scheme) {
-            // 웹 스킴: 내비게이션 가로채기 훅으로 소스 전환(로컬↔서버) 기회를 준 뒤, 아니면 WebView 가 로드
+            // 웹 스킴: 내비게이션 가로채기 훅으로 소스 전환(로컬↔서버)/취소 기회를 준 뒤, 아니면 WebView 가 로드
             "http", "https" -> {
                 val target = uri.toString()
-                val replacement = navigationResolver?.invoke(target)
-                if (replacement != null && replacement != target) {
-                    view?.loadUrl(replacement)   // 대체 URL 로 재로드(원 로드 취소)
-                    true                          // 우리가 처리함
-                } else {
-                    false                         // WebView 가 그대로 로드
+                when (val replacement = navigationResolver?.invoke(target)) {
+                    // 이동 취소 신호: 대체 로드도 외부 위임도 없이 현재 화면을 그대로 유지(오프라인 차단 등)
+                    CANCEL_NAVIGATION -> true
+                    null, target -> false                              // 원래 URL 그대로 로드
+                    else -> { view?.loadUrl(replacement); true }       // 대체 URL 로 재로드(원 로드 취소)
                 }
             }
             // 그 외 스킴은 외부 앱으로 위임(전화/메일/지도/스토어/커스텀 스킴 등)
@@ -179,5 +180,14 @@ class BaseWebViewClient(
         }
         // 안전 기본값: 인증서 오류 시 연결 거부
         handler.cancel()
+    }
+
+    companion object {
+        /**
+         * [navigationResolver] 가 이 값을 반환하면 해당 내비게이션을 "취소"한다 — 대체 로드도 외부 위임도 없이
+         * 현재 화면을 그대로 유지(stay)한다. (오프라인 이동 차단 등에서 팝업만 띄우고 화면은 안 바꿀 때)
+         * 일반 URL 과 절대 겹치지 않도록 내부 전용 스킴 문자열을 쓴다.
+         */
+        const val CANCEL_NAVIGATION = "webviewlib://cancel-navigation"
     }
 }

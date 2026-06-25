@@ -48,7 +48,8 @@ afterEvaluate {
                 groupId = 'net.common.webviewlib'
                 artifactId = 'webviewlib'
                 // 2.0.0 이미 배포됨 → material 미사용 의존성 + 죽은 themes 제거 반영분이 2.0.1
-                version = '2.0.4'
+                // 2.0.5: navigationResolver 에 CANCEL_NAVIGATION(이동 취소/현재화면 유지) 추가
+                version = '2.0.5'
             }
         }
     }
