@@ -190,6 +190,10 @@ class BaseWebChromeClient constructor(
         val popup = WebView(activity)
         // 메인과 동일한 표준 설정 적용(JS/저장소/멀티윈도우). OAuth 팝업이라 서드파티 쿠키 허용.
         WebViewConfigurator.apply(popup, enableThirdPartyCookies = true)
+        // 부모(opener) WebView 의 User-Agent 를 팝업에 그대로 물려준다.
+        // 앱이 메인 WebView UA 에서 "; wv" 를 제거해도 팝업이 기본 UA(wv 포함)면 구글이 임베디드 WebView 로
+        // 감지해 "Access blocked"(disallowed_useragent) 로 막는다 → 부모 UA 상속으로 동일 정책 통과.
+        runCatching { popup.settings.userAgentString = view.settings.userAgentString }
 
         val dialog = Dialog(activity).apply {
             requestWindowFeature(Window.FEATURE_NO_TITLE)

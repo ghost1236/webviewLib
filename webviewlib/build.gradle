@@ -51,7 +51,8 @@ afterEvaluate {
                 // 2.0.5: navigationResolver 에 CANCEL_NAVIGATION(이동 취소/현재화면 유지) 추가
                 // 2.0.6: launchExternal 가 intent:// 의 browser_fallback_url 로 폴백(앱 미설치 시 웹 대체 — 카카오 로그인 등)
                 // 2.0.7: onCreateWindow 가 실제 팝업 WebView(opener 유지)를 다이얼로그로 띄움 — 구글 로그인(GSI) 팝업 복귀 지원
-                version = '2.0.7'
+                // 2.0.8: 팝업 WebView 가 부모 UA 상속 — 구글 disallowed_useragent("Access blocked") 회피
+                version = '2.0.8'
             }
         }
     }
