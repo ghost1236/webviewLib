@@ -49,7 +49,8 @@ afterEvaluate {
                 artifactId = 'webviewlib'
                 // 2.0.0 이미 배포됨 → material 미사용 의존성 + 죽은 themes 제거 반영분이 2.0.1
                 // 2.0.5: navigationResolver 에 CANCEL_NAVIGATION(이동 취소/현재화면 유지) 추가
-                version = '2.0.5'
+                // 2.0.6: launchExternal 가 intent:// 의 browser_fallback_url 로 폴백(앱 미설치 시 웹 대체 — 카카오 로그인 등)
+                version = '2.0.6'
             }
         }
     }

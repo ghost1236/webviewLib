@@ -82,16 +82,17 @@ class BaseWebViewClient(
             }
             // 그 외 스킴은 외부 앱으로 위임(전화/메일/지도/스토어/커스텀 스킴 등)
             else -> {
-                launchExternal(uri)
+                launchExternal(view, uri)
                 true
             }
         }
     }
 
-    private fun launchExternal(uri: Uri) {
+    private fun launchExternal(view: WebView?, uri: Uri) {
+        val isIntentScheme = uri.scheme.equals("intent", ignoreCase = true)
         try {
             // intent:// 스킴은 Intent.parseUri 로 복원
-            val intent = if (uri.scheme.equals("intent", ignoreCase = true)) {
+            val intent = if (isIntentScheme) {
                 Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME)
             } else {
                 Intent(Intent.ACTION_VIEW, uri)
@@ -99,10 +100,26 @@ class BaseWebViewClient(
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             activity.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            // 처리할 앱이 없으면 조용히 무시(필요 시 마켓 fallback 을 호출부에서 추가)
+            // 대상 앱 미설치 — intent:// 에 담긴 browser_fallback_url(웹 대체 주소)이 있으면 그 URL 로 WebView 폴백.
+            // (예: 카카오 로그인 — 카카오톡 미설치 시 intent 가 가리키는 웹 OAuth 페이지로 자연 전환. 없으면 기존대로 무시.)
+            if (isIntentScheme && view != null && loadIntentFallback(view, uri)) return
         } catch (e: Exception) {
             // 잘못된 intent URI 등 — 크래시 방지
         }
+    }
+
+    /**
+     * intent:// URI 의 S.browser_fallback_url 을 꺼내 WebView 로 로드한다(앱 미설치 시 웹 대체).
+     * @return 폴백 URL 이 있어 로드했으면 true, 없으면 false.
+     */
+    private fun loadIntentFallback(view: WebView, uri: Uri): Boolean {
+        val fallback = runCatching {
+            Intent.parseUri(uri.toString(), Intent.URI_INTENT_SCHEME)
+                .getStringExtra("browser_fallback_url")
+        }.getOrNull()
+        if (fallback.isNullOrBlank()) return false
+        view.loadUrl(fallback)
+        return true
     }
 
     // --- 로컬 assets 가로채기 -----------------------------------------------
