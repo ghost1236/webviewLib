@@ -1,17 +1,18 @@
 package net.common.webviewlib
 
 import android.app.Activity
+import android.app.Dialog
 import android.net.Uri
 import android.os.Message
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.webkit.GeolocationPermissions
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
@@ -179,30 +180,50 @@ class BaseWebChromeClient constructor(
             return true
         }
 
-        // 기본 동작: 별도 창을 만들지 않고, 새 창이 열려는 URL 을 메인 WebView 에서 로드한다.
-        // window.open / target=_blank 는 onCreateWindow 시점에 URL 을 모르므로,
-        // 임시 WebView 로 한 번 받아 URL 만 추출한 뒤 메인(view)에 로드하고 임시 뷰는 파기한다.
+        // 기본 동작: **진짜 팝업 WebView**(opener 관계 유지)를 다이얼로그로 띄운다.
+        // 과거엔 임시 WebView 로 URL 만 빼 메인 WebView 에 로드했는데, 이 경우 window.opener 가 끊겨
+        // "팝업에서 OAuth 후 opener 로 postMessage" 하는 흐름(구글 로그인 GSI 등)이 gsi/transform 단계에서 멈춘다.
+        // resultMsg 의 transport 에 새 WebView 를 연결해야 JS 의 window.open 이 그 창을 opener 로 인식한다.
         val activity = mActivity ?: return false
         if (activity.isFinishing) return false
 
-        val tempWebView = WebView(activity)
-        tempWebView.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(v: WebView?, request: WebResourceRequest?): Boolean {
-                request?.url?.toString()?.let { view.loadUrl(it) }
-                tempWebView.destroy()
-                return true
-            }
+        val popup = WebView(activity)
+        // 메인과 동일한 표준 설정 적용(JS/저장소/멀티윈도우). OAuth 팝업이라 서드파티 쿠키 허용.
+        WebViewConfigurator.apply(popup, enableThirdPartyCookies = true)
 
-            @Deprecated("Deprecated in Java")
-            override fun shouldOverrideUrlLoading(v: WebView?, url: String?): Boolean {
-                url?.let { view.loadUrl(it) }
-                tempWebView.destroy()
-                return true
+        val dialog = Dialog(activity).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(
+                popup,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            )
+            // 뒤로가기/바깥 탭으로 닫을 때 WebView 정리.
+            setOnDismissListener { runCatching { popup.destroy() } }
+        }
+
+        // 팝업이 스스로 닫힐 때(window.close — OAuth 완료 후 GSI 가 호출) 다이얼로그 종료.
+        popup.webChromeClient = object : WebChromeClient() {
+            override fun onCloseWindow(window: WebView?) {
+                runCatching { if (dialog.isShowing) dialog.dismiss() }
             }
+        }
+        // 팝업 내 이동은 그대로 로드(OAuth 제공자 https 페이지). intent 등 외부 스킴은 메인 클라이언트가 아닌
+        // 기본 처리(드묾)이며, 핵심인 google https 흐름엔 영향 없음.
+        popup.webViewClient = WebViewClient()
+
+        runCatching {
+            dialog.show()
+            dialog.window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
         }
 
         val transport = resultMsg.obj as? WebView.WebViewTransport
-        transport?.webView = tempWebView
+        transport?.webView = popup
         resultMsg.sendToTarget()
         return true
     }
