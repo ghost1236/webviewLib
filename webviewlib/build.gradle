@@ -52,7 +52,14 @@ afterEvaluate {
                 // 2.0.6: launchExternal 가 intent:// 의 browser_fallback_url 로 폴백(앱 미설치 시 웹 대체 — 카카오 로그인 등)
                 // 2.0.7: onCreateWindow 가 실제 팝업 WebView(opener 유지)를 다이얼로그로 띄움 — 구글 로그인(GSI) 팝업 복귀 지원
                 // 2.0.8: 팝업 WebView 가 부모 UA 상속 — 구글 disallowed_useragent("Access blocked") 회피
-                version = '2.0.8'
+                // 2.0.9: SwipeRefreshLayout 기반 pull-to-refresh 제어 API 추가
+                version = '2.0.9'
+            }
+            jitpackCompat(MavenPublication) {
+                from components.release
+                groupId = 'com.github.ghost1236'
+                artifactId = 'webviewLib'
+                version = '2.0.9'
             }
         }
     }
@@ -66,6 +73,7 @@ dependencies {
     // WebViewAssetLoader: 로컬 assets 를 https://appassets.androidplatform.net 경로로 안전하게 로드.
     // api 로 노출하여 이 라이브러리를 쓰는 app 모듈이 별도 의존 추가 없이 사용 가능하게 함.
     api 'androidx.webkit:webkit:1.11.0'
+    api 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

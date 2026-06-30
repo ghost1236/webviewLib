@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 /**
  * WebView 전용 화면의 공통 베이스 액티비티.
@@ -51,6 +52,8 @@ abstract class BaseWebViewActivity : AppCompatActivity() {
         private set
 
     protected var progressBar: ProgressBar? = null
+    protected var swipeRefreshLayout: SwipeRefreshLayout? = null
+        private set
     private var fullscreenContainer: FrameLayout? = null
     protected lateinit var chromeClient: BaseWebChromeClient
         private set
@@ -68,6 +71,9 @@ abstract class BaseWebViewActivity : AppCompatActivity() {
 
     /** 서드파티 쿠키 허용 여부 */
     protected open fun enableThirdPartyCookies(): Boolean = true
+
+    /** 당겨서 새로고침 기본 활성화 여부. 레거시 JSP e_refresh 같은 페이지별 정책은 앱에서 별도 제어한다. */
+    protected open fun enablePullToRefresh(): Boolean = false
 
     /** JS Bridge 등록 지점. webView.registerBridge("...", obj) 호출 */
     protected open fun setupBridge(webView: WebView) {}
@@ -120,6 +126,7 @@ abstract class BaseWebViewActivity : AppCompatActivity() {
 
         webView = findViewById(R.id.webviewlib_webview)
         progressBar = findViewById(R.id.webviewlib_progress)
+        swipeRefreshLayout = findViewById(R.id.webviewlib_swipe_refresh)
         fullscreenContainer = findViewById(R.id.webviewlib_fullscreen)
 
         setupWebView()
@@ -131,6 +138,7 @@ abstract class BaseWebViewActivity : AppCompatActivity() {
 
     private fun setupWebView() {
         WebViewConfigurator.apply(webView, enableThirdPartyCookies())
+        setupPullToRefresh()
 
         val assetLoader = if (useAssetLoader()) WebViewConfigurator.createAssetLoader(this) else null
 
@@ -141,10 +149,12 @@ abstract class BaseWebViewActivity : AppCompatActivity() {
             }
             onPageFinishedCallback = { url ->
                 progressBar?.visibility = View.GONE
+                swipeRefreshLayout?.isRefreshing = false
                 this@BaseWebViewActivity.onPageFinished(url)
             }
             onErrorCallback = { code, desc, isMainFrame ->
                 if (isMainFrame) progressBar?.visibility = View.GONE
+                if (isMainFrame) swipeRefreshLayout?.isRefreshing = false
                 onWebError(code, desc, isMainFrame)
             }
             // 내비게이션 가로채기 위임(서브클래스 resolveNavigation). 기본 구현은 null → 동작 변화 없음.
@@ -168,6 +178,25 @@ abstract class BaseWebViewActivity : AppCompatActivity() {
 
         // 서브클래스가 JS Bridge 를 등록할 지점
         setupBridge(webView)
+    }
+
+    private fun setupPullToRefresh() {
+        swipeRefreshLayout?.apply {
+            isEnabled = enablePullToRefresh()
+            setOnChildScrollUpCallback { _, _ -> webView.canScrollVertically(-1) }
+            setOnRefreshListener {
+                // 사용자가 직접 당겨 갱신한 경우 현재 WebView URL을 그대로 다시 로드한다.
+                webView.reload()
+            }
+        }
+    }
+
+    /** 페이지 정책에 따라 pull-to-refresh 를 켜고 끈다. false 로 전환할 때 남은 spinner 도 즉시 정리한다. */
+    protected fun setPullToRefreshEnabled(enabled: Boolean) {
+        swipeRefreshLayout?.apply {
+            isEnabled = enabled
+            if (!enabled) isRefreshing = false
+        }
     }
 
     // --- 파일 선택 ----------------------------------------------------------
@@ -253,13 +282,13 @@ abstract class BaseWebViewActivity : AppCompatActivity() {
     private fun applyFullscreen(isFullScreen: Boolean) {
         val controller = WindowCompat.getInsetsController(window, window.decorView)
         if (isFullScreen) {
-            webView.visibility = View.GONE
+            (swipeRefreshLayout ?: webView).visibility = View.GONE
             WindowCompat.setDecorFitsSystemWindows(window, false)
             controller.hide(WindowInsetsCompat.Type.systemBars())
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         } else {
-            webView.visibility = View.VISIBLE
+            (swipeRefreshLayout ?: webView).visibility = View.VISIBLE
             WindowCompat.setDecorFitsSystemWindows(window, true)
             controller.show(WindowInsetsCompat.Type.systemBars())
         }
