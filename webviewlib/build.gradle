@@ -53,13 +53,8 @@ afterEvaluate {
                 // 2.0.7: onCreateWindow 가 실제 팝업 WebView(opener 유지)를 다이얼로그로 띄움 — 구글 로그인(GSI) 팝업 복귀 지원
                 // 2.0.8: 팝업 WebView 가 부모 UA 상속 — 구글 disallowed_useragent("Access blocked") 회피
                 // 2.0.9: SwipeRefreshLayout 기반 pull-to-refresh 제어 API 추가
-                version = '2.0.9'
-            }
-            jitpackCompat(MavenPublication) {
-                from components.release
-                groupId = 'com.github.ghost1236'
-                artifactId = 'webviewLib'
-                version = '2.0.9'
+                // 2.0.10: jitpackCompat 중복 퍼블리케이션 제거(jitpack 빌드 깨짐) 후 재배포
+                version = '2.0.10'
             }
         }
     }
